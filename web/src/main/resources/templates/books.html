@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Список книг</title>
+</head>
+
+<body>
+<div class="container">
+    <h1>Список книг</h1>
+
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#book-list-tab">Список книг</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#add-book-tab">Добавить книгу</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#update-book-tab">Изменить книгу</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#delete-book-tab">Удалить книгу</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="book-list-tab" class="tab-pane fade show active">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>id</th>
+                    <th>Фамилия</th>
+                    <th>Имя</th>
+                    <th>Название книги</th>
+                </tr>
+                </thead>
+                <tbody id="book-list"></tbody>
+            </table>
+        </div>
+
+        <div id="add-book-tab" class="tab-pane fade">
+            <h3>Добавить книгу</h3>
+            <form id="add-book-form">
+                <div class="form-group">
+                    <label for="lastName">Фамилия:</label>
+                    <input type="text" class="form-control" id="lastName" required>
+                </div>
+                <div class="form-group">
+                    <label for="firstName">Имя:</label>
+                    <input type="text" class="form-control" id="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="title">Название книги:</label>
+                    <input type="text" class="form-control" id="title" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Добавить</button>
+            </form>
+        </div>
+
+        <div id="update-book-tab" class="tab-pane fade">
+            <h3>Изменить книгу</h3>
+            <form id="update-book-form">
+                <div class="form-group">
+                    <label for="update-book-id">Выберите ID книги:</label>
+                    <select class="form-control" id="update-book-id">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="update-lastName">Фамилия:</label>
+                    <input type="text" class="form-control" id="update-lastName" required>
+                </div>
+                <div class="form-group">
+                    <label for="update-firstName">Имя:</label>
+                    <input type="text" class="form-control" id="update-firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="update-title">Название книги:</label>
+                    <input type="text" class="form-control" id="update-title" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Изменить</button>
+            </form>
+        </div>
+
+        <div id="delete-book-tab" class="tab-pane fade">
+            <h3>Удалить книгу</h3>
+            <form id="delete-book-form">
+                <div class="form-group">
+                    <label for="delete-book-id">Выберите ID книги:</label>
+                    <select class="form-control" id="delete-book-id">
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-danger">Удалить</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript" charset="UTF-8">
+    var books = JSON.parse(/*[[${json}]]*/ "");
+    var bookList = document.getElementById('book-list');
+    var updateBookIdSelect = document.getElementById('update-book-id');
+    var deleteBookIdSelect = document.getElementById('delete-book-id');
+    var addBookForm = document.getElementById('add-book-form');
+    var updateBookForm = document.getElementById('update-book-form');
+    var deleteBookForm = document.getElementById('delete-book-form');
+
+    books.forEach(function (book) {
+        var row = document.createElement('tr');
+        Object.keys(book).forEach(function (key) {
+            var cell = document.createElement('td');
+            cell.textContent = book[key];
+            row.appendChild(cell);
+        });
+        bookList.appendChild(row);
+
+        var option1 = document.createElement('option');
+        option1.value = book.id;
+        option1.textContent = book.id;
+        updateBookIdSelect.appendChild(option1);
+
+        var option2 = document.createElement('option');
+        option2.value = book.id;
+        option2.textContent = book.id;
+        deleteBookIdSelect.appendChild(option2);
+    });
+
+    addBookForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var lastName = document.getElementById('lastName').value;
+        var firstName = document.getElementById('firstName').value;
+        var title = document.getElementById('title').value;
+
+        var newBook = {
+            "lastName": lastName,
+            "firstName": firstName,
+            "title": title
+        };
+        alert('Книгу успешно добавлена в список.');
+        var request = new XMLHttpRequest();
+        request.open("POST", "http://localhost:8080/bookshelf/books/add", true);
+        request.setRequestHeader('Content-Type', 'application/json');
+        request.send(JSON.stringify(newBook));
+        // Очистка полей формы
+        addBookForm.reset();
+    });
+
+    updateBookForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var selectedBookId = updateBookIdSelect.value;
+        var lastName = document.getElementById('update-lastName').value;
+        var firstName = document.getElementById('update-firstName').value;
+        var title = document.getElementById('update-title').value;
+
+        console.log('Выбранный ID книги:', selectedBookId);
+        var editBook = {
+            "lastName": lastName,
+            "firstName": firstName,
+            "title": title
+        };
+        alert('Книга успешно изменена.');
+        var request = new XMLHttpRequest();
+        request.open("PUT", "http://localhost:8080/bookshelf/books/edit/" + selectedBookId, true);
+        request.setRequestHeader('Content-Type', 'application/json');
+        request.send(JSON.stringify(editBook));
+        // Очистка полей формы
+        updateBookForm.reset();
+    });
+
+    deleteBookForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var selectedBookId = deleteBookIdSelect.value;
+
+        alert('Книга успешно удалена.');
+        var request = new XMLHttpRequest();
+        request.open("DELETE", "http://localhost:8080/bookshelf/books/" + selectedBookId, true);
+        request.setRequestHeader('Content-Type', 'application/json');
+        request.send();
+
+        deleteBookForm.reset();
+    });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>
